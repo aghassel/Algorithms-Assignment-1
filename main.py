@@ -170,7 +170,17 @@ def buildHull( points ):
     # Handle base cases of two or three points
     #
     # [YOUR CODE HERE]
-
+    numPoints = len(points)
+    if numPoints <= 3:
+        for i in range(numPoints-1):
+            points[i].cwPoint = points[i+1]
+            points[i+1].ccwPoint = points[i]
+        points[numPoints-1].cwPoint = points[0]
+        points[0].ccwPoint = points[numPoints-1]
+    else:
+        half = numPoints/2
+        buildHull(points[:int(half)])
+        buildHull(points[int(half):])
     # Handle recursive case.
     #
     # After you get the hull-merge working, do the following: For each
