@@ -182,7 +182,7 @@ def buildHull( points ):
         buildHull(points[:int(half)])
         buildHull(points[int(half):])
     # Handle recursive case.
-    # PENIS
+    #
     # After you get the hull-merge working, do the following: For each
     # point that was removed from the convex hull in a merge, set that
     # point's CCW and CW pointers to None.  You'll see that the arrows
