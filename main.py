@@ -163,58 +163,71 @@ def turn( a, b, c ):
 # Build a convex hull from a set of point
 # Use the method described in class
 
-def walkUp(left, right):
-    while turn(left.ccwPoint, left, right) == LEFT_TURN or turn(left, right, right.cwPoint) == LEFT_TURN:
-        if turn(left.ccwPoint, left, right) == LEFT_TURN:
-            left = left.ccwPoint
-        else:
-            right = right.cwPoint
-    left.cwPoint = right
-    right.ccwPoint = left
-
-    return [left, right]
-
-def walkDown(left, right):
-    while turn(left.ccwPoint, left, right) == RIGHT_TURN or turn(left, right, right.cwPoint) == RIGHT_TURN:
-        if turn(left.ccwPoint, left, right) == RIGHT_TURN:
-            right = right.cwPoint
-        else:
-            left = left.ccwPoint
-    left.ccwPoint = right
-    right.cwPoint = left
-
-def merge(leftHull, rightHull):
-    rLeft = leftHull[-1]                    #set to rightmost point in leftHull
-    lRight = rightHull[0]                   #set to leftmost point in rightHull
-
-    top = walkUp(rLeft, lRight)               #Sets the top most points of each hull to point at eachother
-    bottom = walkDown(rLeft, lRight)             #Sets the bottom most points of each hull to point at eachother
-
 def buildHull(points):
 
-
     numPoints = len(points)
-    half = numPoints/2
+    half = int(numPoints//2)
 
-    left = points[:int(half)]
-    right = points[int(half):]
-    if numPoints > 3:
-        buildHull(left)
-        buildHull(right)
+    if numPoints <=3 and numPoints > 0:
+        for i in range(numPoints):  
+            if numPoints == 2:   
+                points[0].cwPoint = points[1]
+                points[0].ccwPoint = points[1]
+                points[1].cwPoint = points[0]
+                points[1].ccwPoint = points[0]    
+                continue                                                          
+            points[i].ccwPoint = points[(i+turn(points[0], points[1], points[2])) % numPoints]
+            points[(i+turn(points[0], points[1], points[2])) %  numPoints].cwPoint = points[i]
+
+   
     else:
-        for i in range(numPoints):
-            points[i].cwPoint = points[(i+1) % numPoints]
-            points[(i+1) %  numPoints].ccwPoint = points[i]
-      
+        leftMost = points[:half]
+        rightMost = points[half:]
+        buildHull(leftMost)
+        buildHull(rightMost)
 
-    
-    #merge(left, right)
+        walkUpL = leftMost[-1]
+        walkUpR = rightMost[0]
 
-        
+        walkDownL= walkUpL
+        walkDownR = walkUpR
+        convexHull = set()
+
+        while turn(walkUpL.ccwPoint, walkUpL, walkUpR) == LEFT_TURN or turn(walkUpL, walkUpR, walkUpR.cwPoint) == LEFT_TURN:
+            if turn(walkUpL.ccwPoint, walkUpL, walkUpR) == LEFT_TURN:
+                walkUpL = walkUpL.ccwPoint
+            else:
+                walkUpR = walkUpR.cwPoint     
+
+        while turn(walkDownL.cwPoint, walkDownL, walkDownR) == RIGHT_TURN or turn(walkDownL, walkDownR, walkDownR.ccwPoint) == RIGHT_TURN:
+            if turn(walkDownL.cwPoint, walkDownL, walkDownR) == RIGHT_TURN:
+                walkDownL = walkDownL.cwPoint
+            else:
+                walkDownR = walkDownR.ccwPoint
+
+        walkUpL.cwPoint = walkUpR
+        walkUpR.ccwPoint = walkUpL 
+        walkDownL.ccwPoint = walkDownR
+        walkDownR.cwPoint = walkDownL
+
+        cHull = walkUpR
+        convexHull.add(cHull)
+        while(True):
+            convexHull.add(cHull.cwPoint)
+            cHull = cHull.cwPoint
+            if cHull == walkUpR:
+                break
+
+        for i in points:
+            if i not in convexHull:
+                i.cwPoint = None
+                i.ccwPoint = None
+                
 
     # Handle bpoints[1] of two or three points
     #
     # [YOUR CODE HERE]
+    
 
   
     # Handle recursive case.
@@ -245,6 +258,8 @@ def buildHull(points):
 
     for p in points:
         p.highlight = True
+        if p.cwPoint == None: 
+            p.highlight = False
     display(wait=True)
 
     # At the very end of buildHull(), you should display the result
@@ -252,8 +267,6 @@ def buildHull(points):
     # not pause.
     
     display()
-
-  
 
 windowLeft   = None
 windowRight  = None
