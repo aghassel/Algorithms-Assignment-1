@@ -165,71 +165,27 @@ def turn( a, b, c ):
 
 def buildHull(points):
 
+    # ints to hold the number of points and the half point
     numPoints = len(points)
     half = int(numPoints//2)
-
-    if numPoints <=3 and numPoints > 0:
-        for i in range(numPoints):  
-            if numPoints == 2:   
-                points[0].cwPoint = points[1]
-                points[0].ccwPoint = points[1]
-                points[1].cwPoint = points[0]
-                points[1].ccwPoint = points[0]    
-                continue                                                          
-            points[i].ccwPoint = points[(i+turn(points[0], points[1], points[2])) % numPoints]
-            points[(i+turn(points[0], points[1], points[2])) %  numPoints].cwPoint = points[i]
-
-   
-    else:
-        leftMost = points[:half]
-        rightMost = points[half:]
-        buildHull(leftMost)
-        buildHull(rightMost)
-
-        walkUpL = leftMost[-1]
-        walkUpR = rightMost[0]
-
-        walkDownL= walkUpL
-        walkDownR = walkUpR
-        convexHull = set()
-
-        while turn(walkUpL.ccwPoint, walkUpL, walkUpR) == LEFT_TURN or turn(walkUpL, walkUpR, walkUpR.cwPoint) == LEFT_TURN:
-            if turn(walkUpL.ccwPoint, walkUpL, walkUpR) == LEFT_TURN:
-                walkUpL = walkUpL.ccwPoint
-            else:
-                walkUpR = walkUpR.cwPoint     
-
-        while turn(walkDownL.cwPoint, walkDownL, walkDownR) == RIGHT_TURN or turn(walkDownL, walkDownR, walkDownR.ccwPoint) == RIGHT_TURN:
-            if turn(walkDownL.cwPoint, walkDownL, walkDownR) == RIGHT_TURN:
-                walkDownL = walkDownL.cwPoint
-            else:
-                walkDownR = walkDownR.ccwPoint
-
-        walkUpL.cwPoint = walkUpR
-        walkUpR.ccwPoint = walkUpL 
-        walkDownL.ccwPoint = walkDownR
-        walkDownR.cwPoint = walkDownL
-
-        cHull = walkUpR
-        convexHull.add(cHull)
-        while(True):
-            convexHull.add(cHull.cwPoint)
-            cHull = cHull.cwPoint
-            if cHull == walkUpR:
-                break
-
-        for i in points:
-            if i not in convexHull:
-                i.cwPoint = None
-                i.ccwPoint = None
-                
-
+    
     # Handle bpoints[1] of two or three points
     #
     # [YOUR CODE HERE]
     
+    #Base case for creating a smaller hull between 2 - 3 points
+    if numPoints <=3 and numPoints > 0:             
+        for i in range(numPoints):  
+            if numPoints == 2:   #In the case there are only 2 
+                points[0].cwPoint = points[1]
+                points[0].ccwPoint = points[1]
+                points[1].cwPoint = points[0]
+                points[1].ccwPoint = points[0]    
+                continue                                         
+            #In the case there are three points. Uses turn function to ensure cwPoint and ccwPoint point in correct direction                 
+            points[i].ccwPoint = points[(i+turn(points[0], points[1], points[2])) % numPoints]
+            points[(i+turn(points[0], points[1], points[2])) %  numPoints].cwPoint = points[i]
 
-  
     # Handle recursive case.
     #
     # After you get the hull-merge working, do the following: For each
@@ -238,7 +194,63 @@ def buildHull(points):
     # from interior points disappear after you do this.
     #
     # [YOUR CODE HERE]
+    
+    #In the case that the number of points don't need to be creating points between eachother
+    #Recursive calls on half partitions of the points list and then merges hulls
+    else:
+        #Recursive call
+        leftMost = points[:half]
+        rightMost = points[half:]
+        buildHull(leftMost)
+        buildHull(rightMost)
+        
+        #Setting the right most of the left side list and left most or the right side list points to be the points we walk up
+        walkUpL = leftMost[-1]
+        walkUpR = rightMost[0]
+        walkDownL= walkUpL
+        walkDownR = walkUpR
+        convexHull = set()
 
+        #Walking up between points, loops until no need to continue walking up
+        while turn(walkUpL.ccwPoint, walkUpL, walkUpR) == LEFT_TURN or turn(walkUpL, walkUpR, walkUpR.cwPoint) == LEFT_TURN:
+            if turn(walkUpL.ccwPoint, walkUpL, walkUpR) == LEFT_TURN:
+                #We move up the left side
+                walkUpL = walkUpL.ccwPoint
+            else:
+                #Moving up on the right side
+                walkUpR = walkUpR.cwPoint  
+                   
+        #Same as above but now we are heading to the bottom most points
+        while turn(walkDownL.cwPoint, walkDownL, walkDownR) == RIGHT_TURN or turn(walkDownL, walkDownR, walkDownR.ccwPoint) == RIGHT_TURN:
+            if turn(walkDownL.cwPoint, walkDownL, walkDownR) == RIGHT_TURN:
+                #We move down the left side
+                walkDownL = walkDownL.cwPoint
+            else:
+                #Moving down the right side
+                walkDownR = walkDownR.ccwPoint
+
+        #Now we set the top most and bottom most points to point to eachother
+        walkUpL.cwPoint = walkUpR
+        walkUpR.ccwPoint = walkUpL 
+        walkDownL.ccwPoint = walkDownR
+        walkDownR.cwPoint = walkDownL
+
+        #Remove points inside the hull from being highlighted and pointing
+        #This is done by walking along the outside and adding the outer most points to the list
+        cHull = walkUpR
+        convexHull.add(cHull)
+        while(True):
+            convexHull.add(cHull.cwPoint)
+            cHull = cHull.cwPoint
+            if cHull == walkUpR:
+                break
+                
+        #Then then we set all the points that are not in the list of outermost points to point to none
+        for i in points:
+            if i not in convexHull:
+                i.cwPoint = None
+                i.ccwPoint = None
+    
     # You can do the following to help in debugging.  This highlights
     # all the points, then shows them, then pauses until you press
     # 'p'.  While paused, you can click on a point and its coordinates
