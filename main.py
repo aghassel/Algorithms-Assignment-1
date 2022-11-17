@@ -162,50 +162,54 @@ def turn( a, b, c ):
 
 # Build a convex hull from a set of point
 # Use the method described in class
+inConvexHull = ()
 
 def walkUp(left, right):
     while turn(left.ccwPoint, left, right) == LEFT_TURN or turn(left, right, right.cwPoint) == LEFT_TURN:
         if turn(left.ccwPoint, left, right) == LEFT_TURN:
             left = left.ccwPoint
+            left.cwPoint.ccwPoint = None
         else:
             right = right.cwPoint
+            right.ccwPoint.cwPoint = None
     left.cwPoint = right
     right.ccwPoint = left
 
-    return [left, right]
-
 def walkDown(left, right):
-    while turn(left.ccwPoint, left, right) == RIGHT_TURN or turn(left, right, right.cwPoint) == RIGHT_TURN:
+    while turn(left.cwPoint, left, right) == RIGHT_TURN or turn(left, right, right.ccwPoint) == RIGHT_TURN:
         if turn(left.ccwPoint, left, right) == RIGHT_TURN:
-            right = right.cwPoint
+            left = left.cwPoint
         else:
-            left = left.ccwPoint
+            right = right.ccwPoint
     left.ccwPoint = right
     right.cwPoint = left
 
 def merge(leftHull, rightHull):
     rLeft = leftHull[-1]                    #set to rightmost point in leftHull
     lRight = rightHull[0]                   #set to leftmost point in rightHull
-
-    top = walkUp(rLeft, lRight)               #Sets the top most points of each hull to point at eachother
-    bottom = walkDown(rLeft, lRight)             #Sets the bottom most points of each hull to point at eachother
+    
+    walkUp(rLeft, lRight)               #Sets the top most points of each hull to point at eachother
+    walkDown(rLeft, lRight)             #Sets the bottom most points of each hull to point at eachother
 
 def buildHull(points):
-
 
     numPoints = len(points)
     half = numPoints/2
 
     left = points[:int(half)]
     right = points[int(half):]
+
     if numPoints > 3:
         buildHull(left)
         buildHull(right)
+        merge(left,right)
     else:
         for i in range(numPoints):
             points[i].cwPoint = points[(i+1) % numPoints]
             points[(i+1) %  numPoints].ccwPoint = points[i]
-      
+
+    
+    
 
     
     #merge(left, right)
